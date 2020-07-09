@@ -15,3 +15,7 @@ After creating the cluster, only the Spider Server has a public IP address for s
 For more details, please see the settings.txt written by the script after creating.
 
 ![A list showing the resrouces.](resources.png 'Resources')
+
+## Prerequisites
+
+- Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
