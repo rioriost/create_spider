@@ -1,6 +1,8 @@
 # create_spider
 Create MariaDB Spider Server on Azure VM with Ultra Disk
 
+![A diagram showing the components these scripts will deploy.](create_spider.png 'Solution Architecture')
+
 These scripts make a MariaDB Spider cluster consisting of a Spider Server and two Spider Data nodes by default.
 
 - create_spider.sh : Create a cluster with VMs. e.g. 1 VM Spider Server with 2 VM Spider Data nodes.
