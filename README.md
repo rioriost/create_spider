@@ -1,5 +1,5 @@
 # create_spider
-Create MariaDB Spider Server on Azure VM with Ultra Disk
+Create MariaDB [Spider Server](https://mariadb.com/kb/en/spider-storage-engine-overview/) on Azure VM with Ultra Disk
 
 ![A diagram showing the components these scripts will deploy.](create_spider.png 'Solution Architecture')
 
