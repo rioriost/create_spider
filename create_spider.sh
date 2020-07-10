@@ -13,7 +13,7 @@ readonly AZURE_ACCT="rifujita"
 readonly RES_LOC="japaneast"
 
 # You don't need to edit, but up to you
-readonly PRJ_NAME="spdd"
+readonly PRJ_NAME="spdvd"
 readonly RES_GRP="${AZURE_ACCT}${PRJ_NAME}rg"
 
 # MySQL parameters
@@ -47,8 +47,8 @@ readonly CREDENTIALS="credentials.inc"
 # 1. Check Ultra Disk
 check_ultra_disk () {
     echo -e "\e[31mChecking if Ultra Disk can be used...\e[m"
-    local st=$(date '+%s')
-    local vm_zones=$(az vm list-skus -r virtualMachines  -l $RES_LOC --query "[?name=='$VM_SIZE'].locationInfo[0].zoneDetails[0].Name" -o tsv)
+    local "st=$(date '+%s')"
+    local "vm_zones=$(az vm list-skus -r virtualMachines  -l $RES_LOC --query "[?name=='$VM_SIZE'].locationInfo[0].zoneDetails[0].Name" -o tsv)"
     if [ -z "$vm_zones" ]; then
         echo "The VM size '$VM_SIZE' is not supported for Ultra Disk in the region '$RES_LOC'."
         exit
@@ -61,8 +61,8 @@ check_ultra_disk () {
 create_group () {
     # Checking if Resource Group exists
     echo -e "\e[31mCreating Resource Group...\e[m"
-    local st=$(date '+%s')
-    local res=$(az group show -g $RES_GRP -o tsv --query "properties.provisioningState" 2>&1 | grep -o 'could not be found')
+    local "st=$(date '+%s')"
+    local "res=$(az group show -g $RES_GRP -o tsv --query "properties.provisioningState" 2>&1 | grep -o 'could not be found')"
     if [ "${res}" != "could not be found" ]; then
         echo "Resource Group, ${RES_GRP} has already existed."
         exit
@@ -81,8 +81,8 @@ create_group () {
 # 3. Create VNET
 create_vnet () {
     echo -e "\e[31mCreating VNET...\e[m"
-    local st=$(date '+%s')
-    local res=$(az network vnet create -g $RES_GRP -n $VNET_NAME --subnet-name $VNET_SUBNET_NAME)
+    local "st=$(date '+%s')"
+    local "res=$(az network vnet create -g $RES_GRP -n $VNET_NAME --subnet-name $VNET_SUBNET_NAME)"
     res=$(az network vnet subnet update -g $RES_GRP --vnet-name $VNET_NAME -n $VNET_SUBNET_NAME)
     show_elapsed_time $st
 }
@@ -91,14 +91,16 @@ create_vnet () {
 create_spider_nodes () {
     for num in $(seq $(expr $MY_COUNT + 1)); do
         if [ $num = 1 ]; then
-            local vm_size=${SPIDER_SIZE}
+            local "vm_size=${SPIDER_SIZE}"
         else
-            local vm_size=${VM_SIZE}
+            local "vm_size=${VM_SIZE}"
         fi
-        local last_octet=$(expr $num + 3)
+        local "last_octet=$(expr $num + 3)"
         echo -e "\e[31mCreating Spider Node $num...\e[m"
-        local st=$(date '+%s')
+        local "st=$(date '+%s')"
         res=$(az vm create --image Canonical:UbuntuServer:18.04-LTS:latest --size ${vm_size} -g ${RES_GRP} -n ${VM_NAME}${num} \
+            --admin-username ${AZURE_ACCT} \
+            --generate-ssh-keys \
             --ultra-ssd-enabled true \
             --storage-sku os=Premium_LRS 0=UltraSSD_LRS \
             --os-disk-size-gb $VM_OS_DISK_SIZE \
@@ -111,7 +113,7 @@ create_spider_nodes () {
             --no-wait)
         
         # There is an issue to change Ultra Disk as in July 2020. (https://github.com/Azure/azure-cli/issues/14013)
-        #local ultradisk=$(az vm show -g ${RES_GRP} -n ${VM_NAME}${num} --query storageProfile.dataDisks[0].name -o tsv)
+        #local "ultradisk=$(az vm show -g ${RES_GRP} -n ${VM_NAME}${num} --query storageProfile.dataDisks[0].name -o tsv)"
         #az disk update -g ${RES_GRP} -n ${ultradisk} --disk-iops-read-write 160000 --disk-mbps-read-write 2000
     
         show_elapsed_time $st
@@ -130,8 +132,8 @@ EOF
     for num in $(seq $(expr $MY_COUNT + 1)); do
         # On Local
         echo -e "\e[31mConfiguring Spider Nodes $num...\e[m"
-        local st=$(date '+%s')
-        local vm_name="${VM_NAME}${num}"
+        local "st=$(date '+%s')"
+        local "vm_name="${VM_NAME}${num}""
 
         # Wait for VM can be connected via ssh
         fqdn="${vm_name}.${RES_LOC}.cloudapp.azure.com"
@@ -203,7 +205,7 @@ EOF
 
         # Do same things as mysql_secure_installation
         sudo mysql -e "
-            UPDATE mysql.user SET Password = PASSWORD('${MY_ADMIN_PASS}') WHERE User = '${MY_ADMIN_USER}';
+            UPDATE mysql.user SET Password = PASSWORD('${MY_ADMIN_PASS}') WHERE User = 'root';
             DROP USER ''@'localhost';
             DROP USER ''@'$(hostname)';
             DROP DATABASE test;
@@ -225,11 +227,11 @@ EOF
 # 6. Enable ssh login to Spider Data Nodes from Spider Server
 enable_ssh_login () {
     echo -e "\e[31mEnabling SSH Login...\e[m"
-    local st=$(date '+%s')
-    local fqdn="${VM_NAME}1.${RES_LOC}.cloudapp.azure.com"
-    local ssh_key=$(ssh -o "StrictHostKeyChecking no" "${AZURE_ACCT}@$fqdn" 'cat ~/.ssh/id_rsa.pub')
+    local "st=$(date '+%s')"
+    local "fqdn="${VM_NAME}1.${RES_LOC}.cloudapp.azure.com""
+    local "ssh_key=$(ssh -o "StrictHostKeyChecking no" "${AZURE_ACCT}@$fqdn" 'cat ~/.ssh/id_rsa.pub')"
     for num in $(seq 2 $(expr $MY_COUNT + 1)); do
-        local res=$(az vm extension set -g ${RES_GRP} --vm-name ${VM_NAME}$num --publisher Microsoft.OSTCExtensions --name VMAccessForLinux --protected-settings '{"username": "${AZURE_ACCT}", "ssh_key": "$ssh_key"}')
+        local "res=$(az vm extension set -g ${RES_GRP} --vm-name ${VM_NAME}$num --publisher Microsoft.OSTCExtensions --name VMAccessForLinux --protected-settings '{"username": "${AZURE_ACCT}", "ssh_key": "$ssh_key"}')"
         res=$(az vm extension set -g ${RES_GRP} --vm-name ${VM_NAME}$num --publisher Microsoft.OSTCExtensions --name VMAccessForLinux --protected-settings '{"reset_ssh": true}')
     done
     show_elapsed_time $st
@@ -238,12 +240,12 @@ enable_ssh_login () {
 # 7. Configure Firewall
 configure_fw () {
     echo -e "\e[31mConfiguring Firewall...\e[m"
-    local st=$(date '+%s')
+    local "st=$(date '+%s')"
     # Open 3306/tcp of Spider Data nodes
     for num in $(seq 2 $(expr $MY_COUNT + 1)); do
-        local res=$(az vm open-port --port 3306 -g ${RES_GRP} -n ${VM_NAME}$num)
-        local nicid=$(az vm show -g ${RES_GRP} -n ${VM_NAME}$num --query 'networkProfile.networkInterfaces[0].id' -o tsv)
-        local ipid=$(az network nic show -g ${RES_GRP} --ids $nicid --query 'ipConfigurations[0].publicIpAddress.id' -o tsv)
+        local "res=$(az vm open-port --port 3306 -g ${RES_GRP} -n ${VM_NAME}$num)"
+        local "nicid=$(az vm show -g ${RES_GRP} -n ${VM_NAME}$num --query 'networkProfile.networkInterfaces[0].id' -o tsv)"
+        local "ipid=$(az network nic show -g ${RES_GRP} --ids $nicid --query 'ipConfigurations[0].publicIpAddress.id' -o tsv)"
         res=$(az network nic update --ids $nicid --remove 'ipConfigurations[0].publicIpAddress')
         res=$(az network public-ip delete -g ${RES_GRP} --ids $ipid)
     done
@@ -252,10 +254,9 @@ configure_fw () {
 
 # 8. Show and write all settings
 show_settings () {
-    local part_comment_ar=()
-    local mysql_com_ar=()
-    local i=1
-    local NODE_NAMES=()
+    local "part_comment_ar=()"
+    local "mysql_com_ar=()"
+    local "NODE_NAMES=()"
     for num in $(seq $MY_COUNT); do
         last_octet=$(expr 4 + $num)
         node_ipaddress="10.0.0.$last_octet"

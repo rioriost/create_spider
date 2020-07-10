@@ -16,7 +16,7 @@ readonly AZURE_ACCT="rifujita"
 readonly RES_LOC="japaneast"
 
 # You don't need to edit, but up to you
-readonly PRJ_NAME="spdd"
+readonly PRJ_NAME="spdod"
 readonly RES_GRP="${AZURE_ACCT}${PRJ_NAME}rg"
 
 # MySQL parameters
@@ -53,8 +53,8 @@ readonly CREDENTIALS="credentials.inc"
 # 1. Check Ultra Disk
 check_ultra_disk () {
     echo -e "\e[31mChecking if Ultra Disk can be used...\e[m"
-    local st=$(date '+%s')
-    local vm_zones=$(az vm list-skus -r virtualMachines  -l $RES_LOC --query "[?name=='$VM_SIZE'].locationInfo[0].zoneDetails[0].Name" -o tsv)
+    local "st=$(date '+%s')"
+    local "vm_zones=$(az vm list-skus -r virtualMachines  -l $RES_LOC --query "[?name=='$VM_SIZE'].locationInfo[0].zoneDetails[0].Name" -o tsv)"
     if [ -z "$vm_zones" ]; then
         echo "The VM size '$VM_SIZE' is not supported for Ultra Disk in the region '$RES_LOC'."
         exit
@@ -67,8 +67,8 @@ check_ultra_disk () {
 create_group () {
     # Checking if Resource Group exists
     echo -e "\e[31mCreating Resource Group...\e[m"
-    local st=$(date '+%s')
-    local res=$(az group show -g $RES_GRP -o tsv --query "properties.provisioningState" 2>&1 | grep -o 'could not be found')
+    local "st=$(date '+%s')"
+    local "res=$(az group show -g $RES_GRP -o tsv --query "properties.provisioningState" 2>&1 | grep -o 'could not be found')"
     if [ "${res}" != "could not be found" ]; then
         echo "Resource Group, ${RES_GRP} has already existed."
         exit
@@ -87,8 +87,8 @@ create_group () {
 # 3. Create VNET
 create_vnet () {
     echo -e "\e[31mCreating VNET...\e[m"
-    local st=$(date '+%s')
-    local res=$(az network vnet create -g $RES_GRP -n $VNET_NAME --subnet-name $VNET_SUBNET_NAME)
+    local "st=$(date '+%s')"
+    local "res=$(az network vnet create -g $RES_GRP -n $VNET_NAME --subnet-name $VNET_SUBNET_NAME)"
     res=$(az network vnet subnet update -g $RES_GRP --vnet-name $VNET_NAME -n $VNET_SUBNET_NAME --disable-private-endpoint-network-policies true)
     show_elapsed_time $st
 }
@@ -96,8 +96,10 @@ create_vnet () {
 # 4. Create Spider VM
 create_spider_vm () {
     echo -e "\e[31mCreating VM...\e[m"
-    local st=$(date '+%s')
+    local "st=$(date '+%s')"
     res=$(az vm create --image Canonical:UbuntuServer:18.04-LTS:latest --size ${VM_SIZE} -g ${RES_GRP} -n ${VM_NAME} \
+        --admin-username ${AZURE_ACCT} \
+        --generate-ssh-keys \
         --ultra-ssd-enabled true \
         --storage-sku os=Premium_LRS 0=UltraSSD_LRS \
         --os-disk-size-gb $VM_OS_DISK_SIZE \
@@ -117,7 +119,7 @@ create_spider_vm () {
 # 5. Create DNS zone
 create_dns_zone () {
     echo -e "\e[31mCreating private DNS zone. Please wait for about 2 mins to complete...\e[m"
-    local st=$(date '+%s')
+    local "st=$(date '+%s')"
     res=$(az network private-dns zone create -g $RES_GRP --name $PLINK_ZONE_NAME)
     res=$(az network private-dns link vnet create -g $RES_GRP --zone-name $PLINK_ZONE_NAME --name "dnslink" --virtual-network $VNET_NAME --registration-enabled false)
     show_elapsed_time $st
@@ -125,12 +127,12 @@ create_dns_zone () {
 
 # 6. Create mysql
 create_mysql () {
-    local i=1
+    local "i=1"
     while [ $i -le ${MY_COUNT} ]; do
         echo -e "\e[31mCreating MySQL ${i}. Please wait for about 2 mins to complete...\e[m"
-        local st=$(date '+%s')
+        local "st=$(date '+%s')"
         # Because of use of Private Link, disable SSL
-        local res=$(az mysql server create -g $RES_GRP -n "${MY_NAME}${i}" --sku $MY_SKU --storage-size $MY_STORAGE_SIZE -u $MY_ADMIN_USER -p $MY_ADMIN_PASS --ssl-enforcement Disabled)
+        local "res=$(az mysql server create -g $RES_GRP -n "${MY_NAME}${i}" --sku $MY_SKU --storage-size $MY_STORAGE_SIZE -u $MY_ADMIN_USER -p $MY_ADMIN_PASS --ssl-enforcement Disabled)"
         show_elapsed_time $st
         create_pep $MY_NAME${i}
         configure_dns $MY_NAME${i}
@@ -141,10 +143,10 @@ create_mysql () {
 
 # 7. Creating Private Endpoint
 create_pep () {
-    local mysql_server=$1
+    local "mysql_server=$1"
     echo -e "\e[31mCreating Private Endpoint...\e[m"
-    local st=$(date '+%s')
-    local server_id=$(az mysql server show -g $RES_GRP -n $mysql_server --query 'id' -o tsv)
+    local "st=$(date '+%s')"
+    local "server_id=$(az mysql server show -g $RES_GRP -n $mysql_server --query 'id' -o tsv)"
     res=$(az network private-endpoint create --name "${mysql_server}ep" -g $RES_GRP --vnet-name $VNET_NAME --subnet $VNET_SUBNET_NAME \
         --private-connection-resource-id $server_id --group-id mysqlServer --connection-name "${mysql_server}epcon")
     show_elapsed_time $st
@@ -152,11 +154,11 @@ create_pep () {
 
 # 8. Configure DNS
 configure_dns () {
-    local mysql_server=$1
+    local "mysql_server=$1"
     echo -e "\e[31mRegistering '$mysql_server' to private DNS zone...\e[m"
     st=$(date '+%s')
-    local nic_id=$(az network private-endpoint show -n "${mysql_server}ep" -g $RES_GRP --query 'networkInterfaces[0].id' -o tsv)
-    local private_ip=$(az resource show --ids $nic_id --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' -o tsv)
+    local "nic_id=$(az network private-endpoint show -n "${mysql_server}ep" -g $RES_GRP --query 'networkInterfaces[0].id' -o tsv)"
+    local "private_ip=$(az resource show --ids $nic_id --api-version 2019-04-01 --query 'properties.ipConfigurations[0].properties.privateIPAddress' -o tsv)"
     res=$(az network private-dns record-set a create --name $mysql_server --zone-name $PLINK_ZONE_NAME -g $RES_GRP)
     res=$(az network private-dns record-set a add-record --record-set-name $mysql_server --zone-name $PLINK_ZONE_NAME -g $RES_GRP -a $private_ip)
     show_elapsed_time $st
@@ -166,7 +168,7 @@ configure_dns () {
 configure_spider () {   
     # On Local
     echo -e "\e[31mConfiguring VM...\e[m"
-    local st=$(date '+%s')
+    local "st=$(date '+%s')"
 
     # Create a file of credentials
     cat << EOF > ${CREDENTIALS}
@@ -280,8 +282,8 @@ EOF
 
 # 10. Show and write all settings
 show_settings () {
-    local part_comment_ar=()
-    local mysql_com_ar=()
+    local "part_comment_ar=()"
+    local "mysql_com_ar=()"
     num=1
     for node_fqdn in $NODE_NAMES; do
         node_name=$(echo $node_fqdn | cut -d'.' -f1)
@@ -352,7 +354,7 @@ EOF
 }
 
 show_elapsed_time () {
-    st=$1
+    local "st=$1"
     echo "Elapsed time: $(expr $(date '+%s') - $st) secs"
 }
 
