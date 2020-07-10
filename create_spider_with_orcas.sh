@@ -283,8 +283,8 @@ EOF
 
 # 10. Show and write all settings
 show_settings () {
-    local "part_comment_ar=()"
-    local "mysql_com_ar=()"
+    part_comment_ar=()
+    mysql_com_ar=()
     num=1
     for node_fqdn in $NODE_NAMES; do
         node_name=$(echo $node_fqdn | cut -d'.' -f1)
@@ -309,7 +309,7 @@ Spider Data Nodes :
 How to connect to Spider Data node from Spider Server${mysql_com}
 
 How to create a table to be sharded
-    ssh ${VM_NAME}.${RES_LOC}.cloudapp.azure.com
+    ssh ${AZURE_ACCT}@${VM_NAME}.${RES_LOC}.cloudapp.azure.com
     tbl_name="sbtest"
     num=1
     for node_fqdn in ${NODE_NAMES}; do

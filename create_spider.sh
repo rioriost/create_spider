@@ -255,8 +255,8 @@ configure_fw () {
 
 # 8. Show and write all settings
 show_settings () {
-    local "part_comment_ar=()"
-    local "mysql_com_ar=()"
+    part_comment_ar=()
+    mysql_com_ar=()
     local "NODE_NAMES=()"
     for num in $(seq $MY_COUNT); do
         last_octet=$(expr 4 + $num)
@@ -283,7 +283,7 @@ Spider Data Nodes :
 How to connect to Spider Data node from Spider Server${mysql_com}
 
 How to create a table to be sharded
-    ssh ${VM_NAME}1.${RES_LOC}.cloudapp.azure.com
+    ssh ${AZURE_ACCT}@${VM_NAME}1.${RES_LOC}.cloudapp.azure.com
     tbl_name="sbtest"
     for num in $(seq -s " " $MY_COUNT); do
         last_octet=\$(expr 4 + \$num)
