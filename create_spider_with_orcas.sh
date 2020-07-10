@@ -11,6 +11,8 @@
 # Azure Ultra Disk
 # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-types#ultra-disk
 
+setopt SH_WORD_SPLIT
+
 # You should edit at least following 2 lines
 readonly AZURE_ACCT="rifujita" 
 readonly RES_LOC="japaneast"
