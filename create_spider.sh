@@ -257,7 +257,7 @@ configure_fw () {
 show_settings () {
     part_comment_ar=()
     mysql_com_ar=()
-    local "NODE_NAMES=()"
+    NODE_NAMES=()
     for num in $(seq $MY_COUNT); do
         last_octet=$(expr 4 + $num)
         node_ipaddress="10.0.0.$last_octet"
