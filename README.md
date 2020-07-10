@@ -19,4 +19,4 @@ For more details, please see the settings.txt written by the script after creati
 ## Prerequisites
 
 - Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
-- zsh
+- zsh: version 5.0.2 or later
