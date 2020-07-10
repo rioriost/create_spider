@@ -197,6 +197,7 @@ EOF
 
     # Copy credentials needed to configure Spider
     scp -o "StrictHostKeyChecking no" ${CREDENTIALS} ${AZURE_ACCT}@"$fqdn:~/"
+    rm -f ${CREDENTIALS}
 
     # SSH Login and execute commands
     ssh -o "StrictHostKeyChecking no" "${AZURE_ACCT}@$fqdn" <<-'EOF'

@@ -222,6 +222,7 @@ EOF
 EOF
         show_elapsed_time $st
     done
+    rm -f ${CREDENTIALS}
 }
 
 # 6. Enable ssh login to Spider Data Nodes from Spider Server
